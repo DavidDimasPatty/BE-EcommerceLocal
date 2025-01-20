@@ -44,7 +44,7 @@ func ReadAllProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
-func readProductById(c *gin.Context) {
+func ReadProductById(c *gin.Context) {
 	log.Println("Read Product By Id")
 	id := c.Param("id")
 
