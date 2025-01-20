@@ -44,6 +44,45 @@ func ReadAllProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
+func readProductById(c *gin.Context) {
+	log.Println("Read Product By Id")
+	id := c.Param("id")
+
+	prodId, err := strconv.Atoi(id)
+	if err != nil {
+		log.Println("Invalid Field ID : ", err)
+		c.JSON(http.StatusBadRequest, gin.H{"eror": ("Invalid Field ID : " + err.Error())})
+		return
+	}
+
+	query := "select * from ecommerce.product where id=?"
+	row, err := db.Query(query, prodId)
+	if err != nil {
+		log.Printf("Failed Execute Query")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed Execute Query"})
+		return
+	}
+
+	defer row.Close()
+
+	var products []model.Product
+
+	for row.Next() {
+		var p model.Product
+		err = row.Scan(&p.ID, &p.Name, &p.Description, &p.Amount, &p.Qty, &p.Image, &p.IDCategory)
+		if err != nil {
+			log.Printf("Failed to scan row: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process data" + err.Error()})
+			return
+		}
+		products = append(products, p)
+	}
+
+	c.JSON(http.StatusOK, products)
+	return
+
+}
+
 func CreateProduct(c *gin.Context) {
 	// Deklarasi variable untuk menyimpan data request
 	var product model.Product
