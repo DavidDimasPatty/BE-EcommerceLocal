@@ -80,7 +80,97 @@ func ReadProductById(c *gin.Context) {
 
 	c.JSON(http.StatusOK, products)
 	return
+}
 
+func ReadProductByCategory(c *gin.Context) {
+	log.Println("Read Product By Category")
+	var category string = c.Query("category")
+
+	if category == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Category is required"})
+		return
+	}
+
+	query := "select * from ecommerce.product where find_in_set(?,idCategory)"
+	row, err := db.Query(query, category)
+
+	if err != nil {
+		log.Printf("Failed Execute Query %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process data " + err.Error()})
+		return
+	}
+
+	defer row.Close()
+
+	var product []model.Product
+
+	for row.Next() {
+		var p model.Product
+		err = row.Scan(&p.ID, &p.Name, &p.Description, &p.Amount, &p.Qty, &p.Image, &p.IDCategory)
+		if err != nil {
+			log.Printf("Failed Scan Data %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to proccess data " + err.Error()})
+			return
+		}
+		product = append(product, p)
+	}
+
+	c.JSON(http.StatusOK, product)
+	return
+
+}
+
+func ReadProductBySort(c *gin.Context) {
+	log.Println("Read Product By Sort")
+	hargaAwal := c.Query("hAwal")
+	hargaAkhir := c.Query("hAkhir")
+
+	if hargaAwal == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Harga Awal Required"})
+		return
+	}
+
+	if hargaAkhir == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Harga Akhir Required"})
+		return
+	}
+
+	hargaAwalF, err := strconv.Atoi(hargaAwal)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Format Harga Awal Salah"})
+		return
+	}
+
+	hargaAkhirF, err := strconv.Atoi(hargaAkhir)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Format Harga Akhir Salah"})
+		return
+	}
+
+	query := "select * from ecommerce.product where amount between ? and ?"
+	row, err := db.Query(query, hargaAwalF, hargaAkhirF)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error DB " + err.Error()})
+		return
+	}
+
+	defer row.Close()
+
+	var products []model.Product
+
+	for row.Next() {
+		var p model.Product
+		err = row.Scan(&p.ID, &p.Name, &p.Description, &p.Amount, &p.Qty, &p.Image, &p.IDCategory)
+		if err != nil {
+			log.Printf("Failed Scan Data %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to proccess data " + err.Error()})
+			return
+		}
+		products = append(products, p)
+	}
+
+	c.JSON(http.StatusOK, products)
+	return
 }
 
 func CreateProduct(c *gin.Context) {

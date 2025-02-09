@@ -43,5 +43,7 @@ func SetupRouter() *gin.Engine {
 	r.DELETE("/products/:id", controller.DeleteProduct)
 	r.PUT("/products/:id", controller.UpdateProduct)
 	r.PUT("/readProductById/:id", controller.ReadProductById)
+	r.GET("/readProductByCategory", controller.ReadProductByCategory)
+	r.GET("/ReadProductBySort", controller.ReadProductBySort)
 	return r
 }
